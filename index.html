@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+    <head>
+        
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js'></script>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>        
+    </head>
+    <body>
+        <div id="graph"></div>
+            <button id="stopButton">Stop</button>
+            <button id="downloadButton">Download Csv</button>
+        
+        <script>
+            
+        var socket = io();
+        let arr1 = []
+        let arr2 = []
+        let x = []
+        let m = 0
+        let plotData = [{ // store plot data in variable
+            y: arr1,
+            x: x,
+            mode: 'lines+markers',
+            line: {color: '#80CAF6',shape: 'spline'},
+            showlegend: false // hide trace name from legend
+        }, {
+            y: arr2,
+            x: x,
+            mode: 'lines+markers',
+            line: {color: '#F080CA',shape: 'spline'},
+            showlegend: false
+        }]
+        
+        let plotLayout = {} // use default layout
+        
+        let plotConfig = {} // use default config
+        
+        let plotDiv = document.getElementById('graph')
+        
+        let plot = Plotly.newPlot(plotDiv, plotData, plotLayout, plotConfig) // create initial plot
+        
+        let stopButton = document.getElementById('stopButton')
+        
+        let stopped = false // track if plot is stopped
+        
+        stopButton.onclick = function() {
+            stopped = !stopped; // toggle stopped flag
+
+            if (stopped) {
+                Plotly.animate(plotDiv, {}, { // pause animation
+                    frame: {duration: 0},
+                    transition: {duration: 0},
+                    fromcurrent: true
+                });
+            } else {
+                Plotly.animate(plotDiv, {}, { // resume animation
+                    frame: {duration: 1000},
+                    transition: {duration: 0},
+                    mode: 'afterall'
+                });
+            }
+            }   
+
+            let allData = []
+            let downloadButton = document.getElementById('downloadButton');
+            downloadButton.onclick = function() {
+                let csvContent = "data:text/csv;charset=utf-8,";
+                csvContent += 'pos1,pos2,freq1,freq2,time stamp'+"\r\n"
+                // format data as CSV
+                allData.forEach(function(rowArray){
+                    let row = rowArray.pos1+ ","+rowArray.pos2+ ","+rowArray.freq1+ ","+rowArray.freq2+ ","+rowArray.delayTime;
+                    csvContent += row + "\r\n";
+                });
+
+                // create and trigger download
+                let encodedUri = encodeURI(csvContent);
+                let link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "data.csv");
+                document.body.appendChild(link); // Required for FF
+                link.click();
+            }
+            
+        
+        socket.on('data', function(data) {
+            
+            if (!stopped) { // only update plot if not stopped
+                arr1.push(Number(data.pos1))
+                arr2.push(Number(data.pos2))
+                console.log(data);
+                m+=data.delayTime
+                x.push(m)
+                allData.push({data , delayTime : m})
+                Plotly.update(plotDiv, {y: [arr1, arr2], x: [x, x]}) // update plot data
+            }
+
+        });
+        
+        </script>
+        
+    </body>
+</html>

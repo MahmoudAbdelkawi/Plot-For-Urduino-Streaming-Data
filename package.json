@@ -1,0 +1,13 @@
+{
+    "name": "basic-socket",
+    "version": "0.0.1",
+    "description": "Communication between Arduino and HTML/JavaScript",
+    "scripts": {
+    "start": "nodemon app.js"
+    },
+    "dependencies": {
+        "nodemon": "^2.0.21",
+        "serialport": "^9.0.1",
+        "socket.io": "^2.0.4"
+    }
+}

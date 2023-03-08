@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+    <head>
+        
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js'></script>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>        
+    </head>
+    <body>
+        <div id="graph"></div>
+        
+        
+        <script>
+            
+        var trace1 = {
+            x:[],
+            y: [],
+            type: 'scatter',
+            name: 'Line 1'
+        };
+
+        var trace2 = {
+            x:[],
+            y: [],
+            type: 'scatter',
+            name: 'Line 2'
+        };
+        var socket = io();
+        // let arr = []
+        socket.on('data', function(data) {
+            console.log(trace1)
+            console.log(trace2)
+            trace1.x.push(data.delayTime)
+            trace2.x.push(data.delayTime)
+            trace1.y.push(data.pos1)
+            trace2.y.push(data.pos2)
+        });
+        
+        
+
+      var data = [trace1, trace2];
+
+      var layout = {
+        title: 'Multiple Line Chart',
+        xaxis: {
+          title: 'X Axis'
+        },
+        yaxis: {
+          title: 'Y Axis'
+        }
+      };
+
+      Plotly.newPlot('graph', data, layout);
+        
+        </script>
+        
+    </body>
+</html>
