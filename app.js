@@ -1,7 +1,7 @@
 var http = require('http');
 var fs = require('fs');
+var path = require('path');
 var index = fs.readFileSync( 'index.html');
-
 var SerialPort = require('serialport');
 const parsers = SerialPort.parsers;
 
@@ -9,7 +9,37 @@ const parser = new parsers.Readline({
     delimiter: '\r\n'
 });
 
-var port = new SerialPort('COM3',{ 
+let serialPortPath = 'COM3'
+
+
+var app = http.createServer(function(req, res) {
+    const { url } = req;
+    
+    if (url === '/') {
+        const indexPath = path.join(__dirname, 'index.html');
+        const indexStream = fs.createReadStream(indexPath);
+        res.writeHead(200, {'Content-Type': 'text/html'});
+        indexStream.pipe(res);
+    } else if(url.startsWith("/selector")){
+      let arr = url.split("=")
+      serialPortPath = arr[1]
+      const indexPath = path.join(__dirname, 'index.html');
+      const indexStream = fs.createReadStream(indexPath);
+      res.writeHead(200, {'Content-Type': 'text/html'});
+      indexStream.pipe(res);
+    }
+    else if (url === '/image.jfif') {
+        const imagePath = path.join(__dirname, 'public', 'image.jfif');
+        const imageStream = fs.createReadStream(imagePath);
+        res.writeHead(200, {'Content-Type': 'image/jpeg'});
+        imageStream.pipe(res);
+    } else {
+        res.writeHead(404, {'Content-Type': 'text/plain'});
+        res.end('404 Not Found');
+    }
+});
+
+var port = new SerialPort(serialPortPath,{ 
     baudRate: 9600,
     dataBits: 8,
     parity: 'none',
@@ -18,11 +48,6 @@ var port = new SerialPort('COM3',{
 });
 
 port.pipe(parser);
-
-var app = http.createServer(function(req, res) {
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    res.end(index);
-});
 
 var io = require('socket.io').listen(app);
 // let i = 0;
@@ -35,7 +60,6 @@ io.on('connection', function(socket) {
     
     console.log('Node is listening to port');
     // setInterval(() => {
-        
     //     io.emit('data', arr[i%4]);
     //     i ++
     // }, 10);
@@ -66,10 +90,12 @@ parser.on('data', function(data) {
     
     console.log(data);
     
+    
     io.emit('data', preprocess(data));
     
 });
 
 app.listen(4000,()=>{
+
     console.log("server is running.......");
 });

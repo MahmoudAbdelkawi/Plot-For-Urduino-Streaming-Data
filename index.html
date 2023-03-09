@@ -3,12 +3,58 @@
     <head>
         
         <script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js'></script>
-        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>        
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>    
+        <style>
+            
+            .text-center{
+                text-align: center;
+            }
+            .text-left{
+                text-align: left;
+            }
+            .flex{
+                display: flex;
+                justify-content: end;
+            }
+            input{
+                width: 65px;
+                background-color: #eee;
+                margin-right:45px;
+            }
+            .position{
+                position: absolute;
+                top: 100px;
+                z-index: 1;
+                right: 45px;
+            }
+            img{
+                margin-left:45px;
+            }
+            button{
+                background-color: blue;
+                color: white;
+                padding: 10px 15px;
+                cursor: pointer;
+                border: 0;
+                border-radius: 7px;
+            }
+        </style>    
     </head>
     <body>
+        <img src="http://localhost:4000/image.jfif" width="300px"  height="150px" alt="">
+        <div class="text-left flex position">
+            <div>
+                <label for="">Elevon Freq</label><br><input type="text" id="freq1" readonly >
+            </div>
+            <div>
+                <label for="">Joystick Freq</label><br><input type="text" id="freq2" readonly >
+            </div>
+        </div>
         <div id="graph"></div>
-            <button id="stopButton">Stop</button>
-            <button id="downloadButton">Download Csv</button>
+            <div class="text-center">
+                <button id="stopButton">Stop</button>
+                <button id="downloadButton">Log to Csv</button>
+            </div>
         
         <script>
             
@@ -52,12 +98,14 @@
                     transition: {duration: 0},
                     fromcurrent: true
                 });
+                stopButton.innerHTML = "Start"
             } else {
                 Plotly.animate(plotDiv, {}, { // resume animation
                     frame: {duration: 1000},
                     transition: {duration: 0},
                     mode: 'afterall'
                 });
+                stopButton.innerHTML = "Stop"
             }
             }   
 
@@ -90,8 +138,10 @@
                 console.log(data);
                 m+=data.delayTime
                 x.push(m)
-                allData.push({data , delayTime : m})
+                allData.push({...data , delayTime : m})
                 Plotly.update(plotDiv, {y: [arr1, arr2], x: [x, x]}) // update plot data
+                document.getElementById("freq1").value = data.freq1
+                document.getElementById("freq2").value = data.freq2
             }
 
         });
